@@ -1,11 +1,12 @@
 require 'highline/import'
 require 'readline'
+require 'clipboard'
 
 require_relative 'tree'
 
 module PasswdManage
   
-  VERSION = "0.0.0"
+  VERSION = "0.1.0"
   
   module UI
     
@@ -44,12 +45,48 @@ module PasswdManage
     def self.main
       # TODO: config, by argv and possibly by config file.
       load_file
+      # If no password was entered, quit.
+      exit unless $tree
       welcome
       begin
         prompt
       ensure
         close_file
       end
+    end
+    
+    # Deletes a key. If the key has no children, it is removed from the tree.
+    # If it has children, it is removed from the tree if and only if it's
+    # value was previously nil. Otherwise it's value is set to nil.
+    # 
+    # @param key [String] The key to delete.
+    def self.del(key)
+      return unless agree "Are you sure you want to delete the key #{key}? "
+      node = $tree.cont.descendant(key)
+      if node == nil
+        puts "Key does not exist."
+        return
+      end
+      unless node.leaf? || node.val == nil
+        node.val = nil
+        return
+      end
+      # The node must be deleted. Further, if any parent nodes would turn into
+      # nil-leaves in the process, they too should be removed.
+      
+      # Splits into two at the *last* slash.
+      parent_split = ->(str) do
+        str.reverse.split('/', 2).map(&:reverse).reverse
+      end
+      key, conn = parent_split.(key)
+      node = $tree.cont.descendant(key)
+      node.delete conn
+      while conn && node.leaf? && node.val == nil
+        key, conn = parent_split.(key)
+        node = $tree.cont.descendant(key)
+        node.delete conn
+      end
+      $tree.flush
     end
     
     # Prints help text.
@@ -63,9 +100,9 @@ module PasswdManage
         "copy KEY\t - Copies the value of the key.\n"\
         "copyc INT KEY\t - Copies the (1-indexed) character from the value "\
           "of the key.\n"\
+        "copy_junk\t - Erases the system clipboard.\n"\
         "del KEY\t\t - Deletes the key from the tree. If it has subtrees, "\
           "the subtrees get deleted if and only if the key had no value.\n"\
-        "copy_junk\t - Erases the system clipboard.\n"\
         "exit\t\t - Exit.\n\n"\
         "Keys are sorted in forward-slash seperated tree structure. "\
         "(slightly remenicient of urls).")
@@ -89,13 +126,87 @@ module PasswdManage
       puts $tree
     end
     
+    # Set a value. Require entering the value to set it to twice until they
+    # match. An empty value will cancel setting.
+    # 
+    # @param key [String] The key to set the value for.
+    def self.set(key)
+      first_pass = true
+      pass1 = pass2 = nil
+      until pass1 == pass2 && !first_pass
+        unless first_pass
+          puts "The values did not match. Please try again."
+        end
+        pass1 = ask "Please enter the value (leave blank to cancel): " do |q|
+          q.echo = false
+        end
+        return if pass1 == ''
+        pass2 = ask "Re-enter the value to confirm: " do |q|
+          q.echo = false
+        end
+        first_pass = false
+      end
+      $tree[key] = pass1
+      # We save the tree whenever it is modified.
+      $tree.flush
+    end
+    
+    # Clears the system clipboard.
+    def self.copy_junk
+      Clipboard.clear
+    end
+    
+    # Copys the value of a key onto the system clipboard
+    # 
+    # @param key [String] The key of the value to copy.
+    def self.copy(key)
+      begin
+        Clipboard.copy($tree[key])
+      # No method error arises from trying to work on a nil tree (or trying to
+      # decrypt a nil value).
+      rescue NoMethodError
+        puts "No value entered for key '#{key}'"
+      end
+    end
+    
+    # Copies the value of a single 1-indexed character of the value of a key
+    # to the system clipboard.
+    # 
+    # @param argstr [String] The index to copy followed by the key, seperated
+    #   by whitespace.
+    def self.copyc_raw(argstr)
+      pos, key = argstr.split(2)
+      pos = pos.to_i
+      copyc(char, key)
+    end
+    
+    # Copies the value of a single 1-indexed character of the value of a key
+    # to the system clipboard.
+    # 
+    # @param pos [Int] The index to copy. IMPORTANT: The string starts at
+    #   index 1!
+    # @param key [String] The key of the value to copy.
+    def self.copyc(pos, key)
+      begin
+        Clipboard.copy($tree[key][pos - 1])
+      # No method error arises from trying to work on a nil tree (or trying to
+      # decrypt a nil value).
+      rescue NoMethodError
+        puts "No value entered for key '#{key}'"
+      end
+    end
+    
     private
     
     # Prints strings, waits for enter then replaces them. Also adds color
     # for fancyness.
     def self.tmp_print(str)
-      # TODO
-      puts str
+      HighLine::SystemExtensions.raw_no_echo_mode
+      print HighLine.color(str, :bold, :green)
+      HighLine::SystemExtensions.get_character
+      HighLine::SystemExtensions.restore_mode
+      hidden_text = "\r<hidden>" << ' ' * (str.length - 8)
+      puts HighLine.color(hidden_text, :bold, :green)
     end
     
     # Displays welcome text.

@@ -33,6 +33,20 @@ module PasswdManage
       end
     end
     
+    # Removes a subtree by the label of the edge leading to it.
+    # 
+    # @param key [String] The edge label.s
+    def delete(key)
+      @succ.delete key
+    end
+    
+    # Checks if this is a leaf node.
+    # 
+    # @return [Boolean] Wheter or not the node is a leaf.
+    def leaf?
+      @succ.length == 0
+    end
+    
     # Iterates over (edge, node) pairs.
     # 
     # @yield [key, tree] Edge, node pairs of connected nodes.
