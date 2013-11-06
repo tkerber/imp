@@ -52,10 +52,10 @@ module PasswdManage
     def self.decrypt(key, data)
       cipher = OpenSSL::Cipher::AES.new(KEYLEN * 8, MODE)
       cipher.decrypt
-      cipher.iv = data[0...BLOCK_SIZE]
+      cipher.iv = data.byteslice 0...BLOCK_SIZE
       cipher.key = key
       
-      cipher.update(data[BLOCK_SIZE..-1]) + cipher.final
+      cipher.update(data.byteslice BLOCK_SIZE..-1) + cipher.final
     end
     
   end
@@ -92,13 +92,13 @@ module PasswdManage
     # Writes the content to the file.
     def flush
       f = File.new(@file, "w")
-      f.print(@salt)
+      f << @salt
       if @marshal
         cont = Marshal.dump @cont
       else
         cont = @cont
       end
-      f.print(Crypto.encrypt(@key, cont))
+      f << Crypto.encrypt(@key, cont)
       f.flush
       f.close
     end
@@ -118,8 +118,8 @@ module PasswdManage
       f = File.new(@file)
       @cont = f.read
       f.close
-      @salt = @cont[0...Crypto::SALTLEN]
-      @cont = @cont[Crypto::SALTLEN..-1]
+      @salt = @cont.byteslice 0...Crypto::SALTLEN
+      @cont = @cont.byteslice Crypto::SALTLEN..-1
       @key = Crypto.get_key(passwd, @salt)
       @cont = Crypto.decrypt(@key, @cont)
       @cont = Marshal.load(@cont) if @marshal
