@@ -1,16 +1,22 @@
 require 'highline/import'
 require 'readline'
 require 'clipboard'
+require 'timeout'
 
 require_relative 'tree'
 
+# A small and simple password manager.
 module PasswdManage
   
+  # The current version.
   VERSION = "0.1.0"
   
+  # Module handling user I/O.
   module UI
     
+    # The default file to save encrypted passwords in.
     DEFAULT_FILE = '~/.passwd_manage/default.enc'
+    # The string precending user input in the prompt.
     PROMPT = '> '
     
     # Loads and decrypts a file. The password is asked for interactively.
@@ -60,32 +66,27 @@ module PasswdManage
     # value was previously nil. Otherwise it's value is set to nil.
     # 
     # @param key [String] The key to delete.
-    def self.del(key)
-      return unless agree "Are you sure you want to delete the key #{key}? "
+    # @param force [Boolean] Doesn't require confirmation from the user if
+    #   it is true.
+    def self.del(key, force = false)
+      unless force ||
+          agree("Are you sure you want to delete the key '#{key}'? ")
+        return
+      end
       node = $tree.cont.descendant(key)
       if node == nil
         puts "Key does not exist."
         return
       end
-      unless node.leaf? || node.val == nil
-        node.val = nil
-        return
-      end
-      # The node must be deleted. Further, if any parent nodes would turn into
-      # nil-leaves in the process, they too should be removed.
       
-      # Splits into two at the *last* slash.
-      parent_split = ->(str) do
-        str.reverse.split('/', 2).map(&:reverse).reverse
+      if node.val == nil
+        $tree.delete key
+      else
+        node.val = nil
       end
-      key, conn = parent_split.(key)
-      node = $tree.cont.descendant(key)
-      node.delete conn
-      while conn && node.leaf? && node.val == nil
-        key, conn = parent_split.(key)
-        node = $tree.cont.descendant(key)
-        node.delete conn
-      end
+      # Remove any nil-leaves. (This may remove key IF it is a leaf)
+      $tree.prune
+      # Write out the tree.
       $tree.flush
     end
     

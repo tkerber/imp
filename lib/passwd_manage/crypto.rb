@@ -7,10 +7,18 @@ module PasswdManage
   # and 10 000 iterations.
   module Crypto
     
+    # The length of the key to use.
+    # This module used AES-256, which has a key length of 32 bytes.
     KEYLEN = 32
+    # The block size of the cipher.
+    # As this module uses AES, this is 16 bytes.
     BLOCK_SIZE = 16
+    # The length of the salts to generate. The length is used as that of the
+    # key.
     SALTLEN = KEYLEN
+    # The iteration of the PBKDF2 algorim to go through.
     ITER = 10_000
+    # The mode of AES to use.
     MODE = :CBC
     
     # Delegates key generation to PBKDF2
@@ -71,6 +79,7 @@ module PasswdManage
   #   into memory.
   class EncryptedFile
     
+    # The plaintext content of the encrypted file.
     attr_accessor :cont
     
     # If the file exists, load the content from it. Otherwise load the
