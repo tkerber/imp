@@ -18,6 +18,9 @@ module PasswdManage
     DEFAULT_FILE = '~/.passwd_manage/default.enc'
     # The string precending user input in the prompt.
     PROMPT = '> '
+    # The time in seconds, after which the program exits if it recieves no
+    # input from the user.
+    TIMEOUT = 300
     
     # Loads and decrypts a file. The password is asked for interactively.
     # 
@@ -262,8 +265,23 @@ module PasswdManage
       prompt_hist = []
       quit = false
       until quit
-        input = Readline.readline(PROMPT, true)
-        quit = run(input) == :quit
+        timeout do
+          input = Readline.readline(PROMPT, true)
+          quit = run(input) == :quit
+        end
+      end
+    end
+    
+    # Times out execution of a block and exits printing an appropriate message
+    # if the block doesn't time out in time.
+    # 
+    # The name is due to a conflict with Timeout's own.
+    def self.timeout(&block)
+      begin
+        Timeout::timeout(TIMEOUT, &block)
+      rescue Timeout::Error
+        puts "\nUser input timeout. Closing..."
+        exit
       end
     end
     
