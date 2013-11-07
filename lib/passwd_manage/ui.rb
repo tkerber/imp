@@ -38,7 +38,7 @@ module PasswdManage
           end
           $tree = EncryptedTree.new(passwd, $file)
         rescue OpenSSL::Cipher::CipherError
-          puts "Decryption failed. Corrupt file or wrong password."
+          $strerr.puts "Decryption failed. Corrupt file or wrong password."
         end
       end
     end
@@ -88,11 +88,11 @@ module PasswdManage
         begin
           Commands.send(command.to_sym, args)
         rescue
-          puts $!
+          $stderr.puts $!
         end
       else
-        puts "Command '#{command}' undefined. Type 'help' for a list of "\
-          "commands."
+        $stder.puts "Command '#{command}' undefined. Type 'help' for a list "\
+          "of commands."
       end
     end
     
@@ -291,7 +291,7 @@ module PasswdManage
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
       rescue NoMethodError
-        puts "No value entered for key '#{key}'"
+        fail "No value entered for key '#{key}'"
       end
     end
     private_class_method :copyc_expanded
