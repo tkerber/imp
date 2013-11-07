@@ -8,6 +8,7 @@ module PasswdManage
     include Enumerable
     
     
+    # The value of the current node in the tree.
     attr_accessor :val
     
     # Creates a new Tree.
@@ -65,10 +66,10 @@ module PasswdManage
     
     # Gets a (more distant descendant of the current node.
     # 
-    # @key [String] A forward-slash seperated list of the edge labels to
+    # @param key [String] A forward-slash seperated list of the edge labels to
     #   follow.
-    # @create [Boolean] Whether or not to create nodes if the edge labels
-    #   aren't used yet.
+    # @param create [Boolean] Whether or not to create nodes if the edge
+    #   labels aren't used yet.
     # @return [Tree, nil] The node connected through the edge labels, or nil
     #   if there is no such node and create was false.
     def descendant(key, create = false)
@@ -159,9 +160,9 @@ module PasswdManage
     
     # Checks whether a tree contains a key.
     # 
-    # @param key [String] The forward slash seperated string of edge labels.
+    # @param item [String] The forward slash seperated string of edge labels.
     def include?(item)
-      @cont.decendant(key) != nil
+      @cont.descendant(key) != nil
     end
     
     # Deletes a node corresponding to a forward-slash seperated list of edge
@@ -174,7 +175,7 @@ module PasswdManage
       finalkey = key[-1]
       key = key[0...-1]
       
-      # Instead of using decendant we reduce over the root. This also handels
+      # Instead of using descendant we reduce over the root. This also handels
       # the root being the parent node well.
       node = key.reduce(@cont, :[])
       node.delete finalkey
@@ -187,7 +188,7 @@ module PasswdManage
       while pruned
         pruned = false
         self.each do |key, value|
-          if value == nil && @cont.decendant(key).leaf?
+          if value == nil && @cont.descendant(key).leaf?
             delete(key)
             pruned = true
           end
