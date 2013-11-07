@@ -49,11 +49,18 @@ module PasswdManage
     
     # Iterates over (edge, node) pairs.
     # 
-    # @yield [key, tree] Edge, node pairs of connected nodes.
-    def each
-      @succ.each do |i|
-        yield i
-      end
+    # @yield [String, Tree] Edge, node pairs of connected nodes.
+    def each(&block)
+      @succ.each(&block)
+    end
+    
+    # Checks if an edge is included.
+    # 
+    # @param item [String] The string to check.
+    # @return [Boolean] Whether or not the string is an edge label going out
+    #   from this node.
+    def include? item
+      @succ.include? item
     end
     
     # Gets a (more distant descendant of the current node.
@@ -99,6 +106,9 @@ module PasswdManage
   # to tap into this programs memory will have no problem with this.
   class EncryptedTree < EncryptedFile
     
+    include Enumerable
+    
+    
     # Creates a new tree / load an existing one from a file.
     # 
     # @param passwd [String] The password to decrypt the file. Discarded
@@ -129,6 +139,60 @@ module PasswdManage
     #   encrypted.
     def []=(key, val)
       @cont.descendant(key, true).val = Crypto.encrypt(@key, val)
+    end
+    
+    # Iterates over key/value pairs.
+    # 
+    # @param keys [Array<String>] A list of the keys followed to reach the
+    #   current subtree.
+    # @param subtree [Tree] The tree currently iterating over.
+    # @yield [String, String] Key, value pairs where the key is a forward
+    #   slash seperated string of edge labels. Values are not decrypted or
+    #   processed.
+    def each(keys = [], subtree = @cont, &block)
+      # Yield the subtree's value unless it is the root.
+      yield [keys.join('/'), subtree.val] unless keys == []
+      subtree.each do |key, tree|
+        each(keys + [key], tree, &block)
+      end
+    end
+    
+    # Checks whether a tree contains a key.
+    # 
+    # @param key [String] The forward slash seperated string of edge labels.
+    def include?(item)
+      @cont.decendant(key) != nil
+    end
+    
+    # Deletes a node corresponding to a forward-slash seperated list of edge
+    # labels.
+    # 
+    # @param key [String] The list of edge labels. Must be a valid key.
+    def delete(key)
+      # We seperate the last key from the first keys.
+      key = key.split('/')
+      finalkey = key[-1]
+      key = key[0...-1]
+      
+      # Instead of using decendant we reduce over the root. This also handels
+      # the root being the parent node well.
+      node = key.reduce(@cont, :[])
+      node.delete finalkey
+    end
+    
+    # Iteratively removes any leaves with a nil value.
+    # Not terribly efficient but there is no need to be.
+    def prune
+      pruned = true
+      while pruned
+        pruned = false
+        self.each do |key, value|
+          if value == nil && @cont.decendant(key).leaf?
+            delete(key)
+            pruned = true
+          end
+        end
+      end
     end
     
     # Delegates to the tree for string representation.
