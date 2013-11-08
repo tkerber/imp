@@ -120,6 +120,11 @@ module PasswdManage
     
     private
     
+    def password=(passwd)
+      @salt = Crypto.rand_salt
+      @key = Crypto.get_key(passwd, @salt)
+    end
+    
     # Loads the content from the file.
     # 
     # @param passwd [String] The password.
@@ -139,8 +144,7 @@ module PasswdManage
     # @param passwd [String] The password.
     def first_time_init(passwd)
       mkdirs(File.dirname(@file))
-      @salt = Crypto.rand_salt
-      @key = Crypto.get_key(passwd, @salt)
+      self.password = passwd
       @cont = nil
     end
     

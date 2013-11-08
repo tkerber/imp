@@ -36,7 +36,7 @@ module PasswdManage
           end
           $tree = EncryptedTree.new(passwd, $file)
         rescue OpenSSL::Cipher::CipherError
-          $strerr.puts "Decryption failed. Corrupt file or wrong password."
+          $stderr.puts "Decryption failed. Corrupt file or wrong password."
         end
       end
     end
@@ -158,6 +158,7 @@ module PasswdManage
     METHODS = [
       "help",
       "set",
+      "change_passwd",
       "paste",
       "print",
       "copy",
@@ -199,7 +200,8 @@ module PasswdManage
         "help\t\t - Prints this help text\n"\
         "set KEY\t\t - Sets the value of the key to a value entered by the "\
           "user.\n"\
-        "paste KEY\t\t - Sets the value of the key from the system "\
+        "change_passwd\t - Changes the password of the current file.\n"\
+        "paste KEY\t - Sets the value of the key from the system "\
           "clipboard.\n"\
         "print\t\t - Prins a representation of the tree, without values.\n"\
         "print KEY\t - Prints the value of the key.\n"\
@@ -226,28 +228,25 @@ module PasswdManage
       end
     end
     
+    # Changes the encryption password.
+    # 
+    # @param args [Array] Ignored.
+    def self.change_passwd(*args)
+      pass = read_passwd
+      return unless pass
+      $tree.password = pass
+      $tree.flush
+    end
+    
     # Set a value. Require entering the value to set it to twice until they
     # match. An empty value will cancel setting.
     # 
     # @param key [String] The key to set the value for.
     def self.set(key)
       fail "Key must be supplied." unless key
-      first_pass = true
-      pass1 = pass2 = nil
-      until pass1 == pass2 && !first_pass
-        unless first_pass
-          puts "The values did not match. Please try again."
-        end
-        pass1 = ask "Please enter the value (leave blank to cancel): " do |q|
-          q.echo = false
-        end
-        return if pass1 == ''
-        pass2 = ask "Re-enter the value to confirm: " do |q|
-          q.echo = false
-        end
-        first_pass = false
-      end
-      $tree[key] = pass1
+      pass = read_passwd
+      return unless pass
+      $tree[key] = pass
       # We save the tree whenever it is modified.
       $tree.flush
     end
@@ -279,7 +278,7 @@ module PasswdManage
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
       rescue NoMethodError
-        fail "No value entered for key '#{key}'"
+        fail "No value entered for key '#{key}'."
       ensure
         Clipboard.clear
       end
@@ -307,6 +306,29 @@ module PasswdManage
     # defined as private.
     private
     
+    # Reads a password from the user.
+    # 
+    # @return [String, nil] The password enetered, or nil if aborted.
+    def self.read_passwd
+      first_pass = true
+      pass1 = pass2 = nil
+      until pass1 == pass2 && !first_pass
+        unless first_pass
+          puts "The pass did not match. Please try again."
+        end
+        pass1 = ask "Please enter the pass (leave blank to cancel): " do |q|
+          q.echo = false
+        end
+        return if pass1 == ''
+        pass2 = ask "Re-enter the pass to confirm: " do |q|
+          q.echo = false
+        end
+        first_pass = false
+      end
+      return pass1
+    end
+    private_class_method :read_passwd
+    
     # Copies the value of a single 1-indexed character of the value of a key
     # to the system clipboard.
     # 
@@ -321,7 +343,7 @@ module PasswdManage
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
       rescue NoMethodError
-        fail "No value entered for key '#{key}'"
+        fail "No value entered for key '#{key}'."
       ensure
         Clipboard.clear
       end

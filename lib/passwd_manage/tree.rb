@@ -196,6 +196,22 @@ module PasswdManage
       end
     end
     
+    # Sets a new password for the file.
+    # 
+    # @passwd [String] The new password to generate a key from.
+    def password=(passwd)
+      key = @key
+      # Super call.
+      EncryptedFile.instance_method(:password=).bind(self).call(passwd)
+      each do |k, v|
+        # Don't change nil values.
+        next unless v
+        # Otherwise decrypt with the old key and encrypt with the new.
+        # (Encryption is done automatically by #[]=)
+        self[k] = Crypto.decrypt(key, v)
+      end
+    end
+    
     # Delegates to the tree for string representation.
     # 
     # @return [String] The string representation of the tree.
