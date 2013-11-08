@@ -203,6 +203,9 @@ module PasswdManage
       key = @key
       # Super call.
       EncryptedFile.instance_method(:password=).bind(self).call(passwd)
+      # If the file is still being initialized, @cont may be nil. In this case
+      # return.
+      return unless @cont
       each do |k, v|
         # Don't change nil values.
         next unless v
