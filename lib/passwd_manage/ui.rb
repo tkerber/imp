@@ -91,7 +91,7 @@ module PasswdManage
           $stderr.puts $!
         end
       else
-        $stder.puts "Command '#{command}' undefined. Type 'help' for a list "\
+        $stderr.puts "Command '#{command}' undefined. Type 'help' for a list "\
           "of commands."
       end
     end
@@ -116,7 +116,7 @@ module PasswdManage
       begin
         Timeout::timeout(TIMEOUT, &block)
       rescue Timeout::Error
-        puts "\nUser input timeout. Closing..."
+        $stderr.puts "\nUser input timeout. Closing..."
         exit
       end
     end
@@ -177,7 +177,6 @@ module PasswdManage
           "clipboard.\n"\
         "print\t\t - Prins a representation of the tree, without values.\n"\
         "print KEY\t - Prints the value of the key.\n"\
-        "copy\t\t - Erases the system clipboard.\n"\
         "copy KEY\t - Copies the value of the key.\n"\
         "copyc INT KEY\t - Copies the (1-indexed) character from the value "\
           "of the key.\n"\
@@ -244,16 +243,19 @@ module PasswdManage
     # @param key [String] The key of the value to copy. If nil, clears the
     #   clipboard instead.
     def self.copy(key = nil)
-      unless key
-        Clipboard.clear
-        return
-      end
+      fail "Key must be supplied." unless key
       begin
-        Clipboard.copy($tree[key])
+        UI.timeout do
+          Clipboard.copy($tree[key])
+          $stdout.print "Copy copied. Press enter to wipe..."
+          gets
+        end
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
       rescue NoMethodError
         fail "No value entered for key '#{key}'"
+      ensure
+        Clipboard.clear
       end
     end
     
@@ -287,11 +289,15 @@ module PasswdManage
     # @param key [String] The key of the value to copy.
     def self.copyc_expanded(pos, key)
       begin
-        Clipboard.copy($tree[key][pos - 1])
+        UI.timeout do
+          Clipboard.copy($tree[key][pos - 1])
+        end
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
       rescue NoMethodError
         fail "No value entered for key '#{key}'"
+      ensure
+        Clipboard.clear
       end
     end
     private_class_method :copyc_expanded
@@ -301,10 +307,15 @@ module PasswdManage
     def self.tmp_print(str)
       HighLine::SystemExtensions.raw_no_echo_mode
       $stdout.print HighLine.color(str, :bold, :green)
-      HighLine::SystemExtensions.get_character
-      HighLine::SystemExtensions.restore_mode
-      hidden_text = "\r<hidden>" << ' ' * [str.length - 8, 0].max
-      puts HighLine.color(hidden_text, :bold, :green)
+      begin
+        UI.timeout do
+          HighLine::SystemExtensions.get_character
+        end
+      ensure
+        HighLine::SystemExtensions.restore_mode
+        hidden_text = "\r<hidden>" << ' ' * [str.length - 8, 0].max
+        puts HighLine.color(hidden_text, :bold, :green)
+      end
     end
     private_class_method :tmp_print
     
