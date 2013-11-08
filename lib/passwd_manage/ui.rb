@@ -5,6 +5,7 @@ require 'timeout'
 require 'optparse'
 
 require_relative 'tree'
+require_relative 'util'
 
 # A small and simple password manager.
 module PasswdManage
@@ -17,6 +18,8 @@ module PasswdManage
     
     # The default file to save encrypted passwords in.
     DEFAULT_FILE = '~/.passwd_manage/default.enc'
+    # The file of the history of the prompt.
+    HISTFILE = '~/.passwd_manage/hist'
     # The string precending user input in the prompt.
     PROMPT = '> '
     # The time in seconds, after which the program exits if it recieves no
@@ -136,16 +139,43 @@ module PasswdManage
     
     # Runs a basic prompt for the user to interface with the program.
     def self.prompt
-      prompt_hist = []
+      load_prompt_hist
       quit = false
-      until quit
-        timeout do
-          input = Readline.readline(PROMPT, true)
-          quit = run(input) == :quit
+      begin
+        until quit
+          timeout do
+            input = Readline.readline(PROMPT, true)
+            quit = run(input) == :quit
+          end
         end
+      ensure
+        save_prompt_hist
       end
     end
     private_class_method :prompt
+    
+    # Loads the prompt history.
+    def self.load_prompt_hist
+      f = File.expand_path(HISTFILE)
+      return unless File.exists? f
+      f = File.new f
+      cont = f.read
+      f.close
+      Marshal.load(cont).each do |h|
+        Readline::HISTORY << h
+      end
+    end
+    private_class_method :load_prompt_hist
+    
+    # Saves the prompt history.
+    def self.save_prompt_hist
+      f = File.expand_path(HISTFILE)
+      Util.mkdirs(File.dirname(f))
+      f = File.new(f, "w")
+      f.write(Marshal.dump(Readline::HISTORY.to_a))
+      f.close
+    end
+    private_class_method :save_prompt_hist
     
   end
   

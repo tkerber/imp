@@ -1,5 +1,7 @@
 require 'openssl'
 
+require_relative 'util'
+
 module PasswdManage
   
   # Contains methods for easily interfacing with ruby's encryption algorithms.
@@ -143,19 +145,9 @@ module PasswdManage
     # 
     # @param passwd [String] The password.
     def first_time_init(passwd)
-      mkdirs(File.dirname(@file))
+      Util.mkdirs(File.dirname(@file))
       self.password = passwd
       @cont = nil
-    end
-    
-    # Creates as many directories as needed.
-    # 
-    # @param dir [String] The directory to create.
-    def mkdirs(dir)
-      return if Dir.exists? dir
-      parent = File.dirname(dir)
-      mkdirs(parent)
-      Dir.mkdir(dir)
     end
     
   end
