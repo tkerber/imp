@@ -2,6 +2,7 @@ require 'highline/import'
 require 'readline'
 require 'clipboard'
 require 'timeout'
+require 'optparse'
 
 require_relative 'tree'
 
@@ -23,10 +24,7 @@ module PasswdManage
     TIMEOUT = 300
     
     # Loads and decrypts a file. The password is asked for interactively.
-    # 
-    # @param file [String] The file to load from.
-    def self.load_file(file = DEFAULT_FILE)
-      $file = file
+    def self.load_file
       until $tree
         begin
           passwd = ask("Password for file #{$file} (leave blank to cancel): ")\
@@ -52,7 +50,12 @@ module PasswdManage
     
     # Runs the program.
     def self.main
-      # TODO: config, by argv and possibly by config file.
+      load_options
+      if $opts[:file]
+        $file = $opts[:file]
+      else
+        $file = DEFAULT_FILE
+      end
       load_file
       # If no password was entered, quit.
       exit unless $tree
@@ -61,50 +64,6 @@ module PasswdManage
         prompt
       ensure
         close_file
-      end
-    end
-    
-    
-    private
-    
-    
-    # Displays welcome text.
-    def self.welcome
-      puts "passwd_manage version #{VERSION}"
-      puts "Using password file #{$file}."
-      puts "Welcome to passwd_manage! Type 'help' for a list of commands."
-    end
-    
-    # Runs a single command by the user. Also catches most errors and prints
-    # them.
-    def self.run(command)
-      # Ctrl-D will return nil; this should be a quit signal.
-      exit unless command
-      # Ignore empty commands
-      return if command == ''
-      command, args = command.strip.split(nil, 2)
-      command.downcase!
-      if Commands::METHODS.include? command
-        begin
-          Commands.send(command.to_sym, args)
-        rescue
-          $stderr.puts $!
-        end
-      else
-        $stderr.puts "Command '#{command}' undefined. Type 'help' for a list "\
-          "of commands."
-      end
-    end
-    
-    # Runs a basic prompt for the user to interface with the program.
-    def self.prompt
-      prompt_hist = []
-      quit = false
-      until quit
-        timeout do
-          input = Readline.readline(PROMPT, true)
-          quit = run(input) == :quit
-        end
       end
     end
     
@@ -120,6 +79,73 @@ module PasswdManage
         exit
       end
     end
+    
+    
+    private
+    
+    
+    # Load program options.
+    def self.load_options
+      $opts = {}
+      OptionParser.new do |opts|
+        opts.banner = "Usage: passwd_manage [options]"
+        opts.on('-v', '--[no-]verbose', 'Print exception stacks.') do |v|
+          $opts[:verbose] = v
+        end
+        opts.on('-f', '--file [FILE]', 'Load from the given file') do |f|
+          $opts[:file] = f
+        end
+      end.parse!
+    end
+    private_class_method :load_options
+    
+    # Displays welcome text.
+    def self.welcome
+      puts "passwd_manage version #{VERSION}"
+      puts "Using password file #{$file}."
+      puts "Welcome to passwd_manage! Type 'help' for a list of commands."
+    end
+    private_class_method :welcome
+    
+    # Runs a single command by the user. Also catches most errors and prints
+    # them.
+    def self.run(command)
+      # Ctrl-D will return nil; this should be a quit signal.
+      exit unless command
+      # Ignore empty commands
+      return if command == ''
+      command, args = command.strip.split(nil, 2)
+      command.downcase!
+      if Commands::METHODS.include? command
+        begin
+          Commands.send(command.to_sym, args)
+        rescue
+          $stderr.puts $!
+          if $opts[:verbose]
+            $!.backtrace.each do |t|
+              puts "\tfrom #{t}"
+            end
+          end
+        end
+      else
+        $stderr.puts "Command '#{command}' undefined. Type 'help' for a list "\
+          "of commands."
+      end
+    end
+    private_class_method :run
+    
+    # Runs a basic prompt for the user to interface with the program.
+    def self.prompt
+      prompt_hist = []
+      quit = false
+      until quit
+        timeout do
+          input = Readline.readline(PROMPT, true)
+          quit = run(input) == :quit
+        end
+      end
+    end
+    private_class_method :prompt
     
   end
   
