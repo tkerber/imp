@@ -2,6 +2,7 @@ require 'clipboard'
 require 'highline/import'
 
 require_relative 'ui'
+require_relative 'util'
 
 module Imp
   
@@ -88,7 +89,7 @@ remenicient of urls).")
     # 
     # @param args [Array] Ignored.
     def self.change_passwd(*args)
-      pass = read_passwd
+      pass = Util.read_passwd("password for file '#{$file}'")
       return unless pass
       $tree.password = pass
       $tree.flush
@@ -100,7 +101,7 @@ remenicient of urls).")
     # @param key [String] The key to set the value for.
     def self.set(key)
       fail "Key must be supplied." unless key
-      pass = read_passwd
+      pass = Util.read_passwd
       return unless pass
       $tree[key] = pass
       # We save the tree whenever it is modified.
@@ -175,29 +176,6 @@ remenicient of urls).")
     # This private is purely symbolic as classmethods have to be explicitly
     # defined as private.
     private
-    
-    # Reads a password from the user.
-    # 
-    # @return [String, nil] The password enetered, or nil if aborted.
-    def self.read_passwd
-      first_pass = true
-      pass1 = pass2 = nil
-      until pass1 == pass2 && !first_pass
-        unless first_pass
-          puts "The pass did not match. Please try again."
-        end
-        pass1 = ask "Please enter the pass (leave blank to cancel): " do |q|
-          q.echo = false
-        end
-        return if pass1 == ''
-        pass2 = ask "Re-enter the pass to confirm: " do |q|
-          q.echo = false
-        end
-        first_pass = false
-      end
-      return pass1
-    end
-    private_class_method :read_passwd
     
     # Copies the value of a single 1-indexed character of the value of a key
     # to the system clipboard.

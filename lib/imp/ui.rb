@@ -1,4 +1,5 @@
 require 'highline/import'
+
 require 'readline'
 require 'timeout'
 require 'optparse'
@@ -28,13 +29,8 @@ module Imp
     def self.load_file
       until $tree
         begin
-          passwd = ask("Password for file #{$file} (leave blank to cancel): ")\
-              do |q|
-            q.echo = false
-          end
-          if passwd == ''
-            break
-          end
+          passwd = get_passwd
+          return unless passwd
           $tree = EncryptedTree.new(passwd, $file)
         rescue OpenSSL::Cipher::CipherError
           $stderr.puts "Decryption failed. Corrupt file or wrong password."
@@ -104,7 +100,7 @@ module Imp
     # Displays welcome text.
     def self.welcome
       puts "imp version #{VERSION}"
-      puts "Using password file #{$file}."
+      puts "Using password file '#{$file}'."
       puts "Welcome to imp! Type 'help' for a list of commands."
     end
     private_class_method :welcome
@@ -185,6 +181,22 @@ module Imp
       end
     end
     private_class_method :init_readline
+    
+    def self.get_passwd
+      if File.exists? File.expand_path($file)
+        pass = ask("Password for file '#{$file}' (leave blank to cancel): ")\
+            do |q|
+          q.echo = false
+        end
+        pass == "" ? nil : pass
+      else
+        puts "This is your first time using the file '#{$file}' to save "
+          "your passwords."
+        puts "Please enter your password for first-time use."
+        puts "Note that you can change this password at any time."
+        Util.read_passwd("password for the file '#{$file}'")
+      end
+    end
     
   end
   
