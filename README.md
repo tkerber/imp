@@ -1,4 +1,12 @@
-passwd_manage
-=============
+IMP (IMP Manager for Passwords)
+===============================
 
-A small and simple password management program written in ruby. (incomplete)
+A small and simple console based password manager.
+
+Uses 256-bit AES encryption to encrypt a tree struction of saved passwords
+with a master password. Provides a basic interactive environment to print
+and copy these passwords.
+
+Allows working with encrypted passwords without them ever appearing on-screen
+(due to the copy functionality) as they would if using a simple encrypted
+password file, but without the bloat of larger password managers.

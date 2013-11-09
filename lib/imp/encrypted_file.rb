@@ -1,7 +1,7 @@
 require_relative 'crypto'
 require_relative 'util'
 
-module PasswdManage
+module Imp
   
   # A rudimentary wrapper to interface with encrypted files.
   # 

@@ -1,6 +1,6 @@
-require_relative 'passwd_manage/ui'
+require_relative 'imp/ui'
 
-module PasswdManage
+module Imp
   
   # The current version number.
   VERSION = "0.2.0"

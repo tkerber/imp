@@ -1,4 +1,0 @@
-#!/usr/bin/env ruby
-require 'passwd_manage'
-
-PasswdManage.main

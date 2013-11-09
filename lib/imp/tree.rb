@@ -1,5 +1,5 @@
 
-module PasswdManage
+module Imp
   
   # A directory-esque tree with labeled nodes and edges.
   class Tree

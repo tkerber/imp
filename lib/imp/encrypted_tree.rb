@@ -3,7 +3,7 @@ require_relative 'encrypted_file'
 require_relative 'crypto'
 
 
-module PasswdManage
+module Imp
   
   # A tree loaded from an encrypted file.
   # 

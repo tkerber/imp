@@ -6,18 +6,18 @@ require 'optparse'
 require_relative 'encrypted_tree'
 require_relative 'util'
 require_relative 'commands'
-require_relative '../passwd_manage'
+require_relative '../imp'
 
 # A small and simple password manager.
-module PasswdManage
+module Imp
   
   # Module handling user I/O.
   module UI
     
     # The default file to save encrypted passwords in.
-    DEFAULT_FILE = '~/.passwd_manage/default.enc'
+    DEFAULT_FILE = '~/.imp/default.enc'
     # The file of the history of the prompt.
-    HISTFILE = '~/.passwd_manage/hist'
+    HISTFILE = '~/.imp/hist'
     # The string precending user input in the prompt.
     PROMPT = '> '
     # The time in seconds, after which the program exits if it recieves no
@@ -90,7 +90,7 @@ module PasswdManage
     def self.load_options
       $opts = {}
       OptionParser.new do |opts|
-        opts.banner = "Usage: passwd_manage [options]"
+        opts.banner = "Usage: imp [options]"
         opts.on('-v', '--[no-]verbose', 'Print exception stacks.') do |v|
           $opts[:verbose] = v
         end
@@ -103,9 +103,9 @@ module PasswdManage
     
     # Displays welcome text.
     def self.welcome
-      puts "passwd_manage version #{VERSION}"
+      puts "imp version #{VERSION}"
       puts "Using password file #{$file}."
-      puts "Welcome to passwd_manage! Type 'help' for a list of commands."
+      puts "Welcome to imp! Type 'help' for a list of commands."
     end
     private_class_method :welcome
     

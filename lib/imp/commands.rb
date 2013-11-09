@@ -3,7 +3,7 @@ require 'highline/import'
 
 require_relative 'ui'
 
-module PasswdManage
+module Imp
   
   # Contains the methods for all commands issued by the user.
   # All commands are executed with Commands#send
