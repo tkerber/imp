@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'passwd_manage/ui'
+require 'passwd_manage'
 
-PasswdManage::UI.main
+PasswdManage.main
