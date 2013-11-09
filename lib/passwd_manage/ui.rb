@@ -203,6 +203,7 @@ module PasswdManage
       "paste",
       "print",
       "copy",
+      "copy_raw",
       "copyc",
       "del",
       "exit"]
@@ -237,24 +238,24 @@ module PasswdManage
     # 
     # @param args [Array] Ignored.
     def self.help(*args)
-      puts (
-        "help\t\t - Prints this help text\n"\
-        "set KEY\t\t - Sets the value of the key to a value entered by the "\
-          "user.\n"\
-        "change_passwd\t - Changes the password of the current file.\n"\
-        "paste KEY\t - Sets the value of the key from the system "\
-          "clipboard.\n"\
-        "print\t\t - Prins a representation of the tree, without values.\n"\
-        "print KEY\t - Prints the value of the key.\n"\
-        "copy KEY\t - Copies the value of the key.\n"\
-        "copyc INT KEY\t - Copies the (1-indexed) character from the value "\
-          "of the key.\n"\
-        "del KEY\t\t - Deletes the key from the tree. If it has subtrees, "\
-          "the subtrees get deleted\n\t\t   if and only if the key had no "\
-          "value.\n"\
-        "exit\t\t - Exit.\n\n"\
-        "Keys are sorted in forward-slash seperated tree structure. "\
-        "(slightly remenicient of urls).")
+      puts ("
+help          - Prints this help text
+set KEY       - Sets the value of the key to a value entered by the user.
+change_passwd - Changes the password of the current file.
+paste KEY     - Sets the value of the key from the system clipboard.
+print         - Prints a representation of the tree, without values.
+print KEY     - Prints the value of the key.
+copy KEY      - Copies the value of the key, auto clears clipboard afterward.
+copy_raw      - Clears the clipboard.
+copy_raw KEY  - Copies the value of a key, without clearing the clipboard.
+                Useful for moving values around between keys.
+copyc INT KEY - Copies the (1-indexed) character from the value of the key.
+del KEY       - Deletes the key from the tree. If it has subtrees, the
+                subtrees get deleted if and only if the key had no value.
+exit          - Exit.
+
+Keys are sorted in forward-slash seperated tree structure (slightly
+remenicient of urls).")
     end
     
     # Prints either the tree if no argument is provided, or prints the value
@@ -305,21 +306,35 @@ module PasswdManage
     end
     
     # Copys the value of a key onto the system clipboard.
-    #et
-    # @param key [String] The key of the value to copy. If nil, clears the
-    #   clipboard instead.
-    def self.copy(key = nil)
-      fail "Key must be supplied." unless key
+    # 
+    # @param key [String, nil] The key of the value to copy. If nil, clears
+    #   the clipboard instead.
+    def self.copy_raw(key = nil)
       begin
-        UI.timeout do
+        if key
           Clipboard.copy($tree[key])
-          $stdout.print "Copy copied. Press enter to wipe..."
-          gets
+        else
+          Clipboard.clear
         end
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
       rescue NoMethodError
         fail "No value entered for key '#{key}'."
+      end
+    end
+    
+    # Copys the value of a key onto the system clipboard. And auto-clears it
+    # afterwards.
+    # 
+    # @param key [String] The key of the value to copy.
+    def self.copy(key)
+      fail "Key must be supplied." unless key
+      begin
+        UI.timeout do
+          copy_raw key
+          $stdout.print "Value copied. Press enter to wipe..."
+          gets
+        end
       ensure
         Clipboard.clear
       end
