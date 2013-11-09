@@ -90,7 +90,12 @@ module PasswdManage
     def to_s(indent = 0)
       s = ""
       each do |k, v|
-        s += '  ' * (indent) + k + "/\n" + v.to_s(indent + 1)
+        s += '  ' * indent
+        s += k
+        s += '/' unless v.leaf?
+        s += '*' if v.val
+        s += "\n"
+        s += v.to_s(indent + 1)
       end
       return s
     end
