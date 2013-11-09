@@ -19,7 +19,7 @@ module Imp
     # The file of the history of the prompt.
     HISTFILE = '~/.imp/hist'
     # The string precending user input in the prompt.
-    PROMPT = '> '
+    PROMPT = 'imp> '
     # The time in seconds, after which the program exits if it recieves no
     # input from the user.
     TIMEOUT = 300
