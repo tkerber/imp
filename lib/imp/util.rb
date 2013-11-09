@@ -1,5 +1,5 @@
 
-module PasswdManage
+module Imp
   
   # Contains misc. utility methods.
   module Util
