@@ -198,7 +198,7 @@ module PasswdManage
     
     # Sets a new password for the file.
     # 
-    # @passwd [String] The new password to generate a key from.
+    # @param [String] The new password to generate a key from.
     def password=(passwd)
       key = @key
       # Super call.

@@ -63,6 +63,7 @@ module PasswdManage
       # If no password was entered, quit.
       exit unless $tree
       welcome
+      init_readline
       begin
         prompt
       ensure
@@ -176,6 +177,16 @@ module PasswdManage
       f.close
     end
     private_class_method :save_prompt_hist
+    
+    # Initializes autocompletion for readline.
+    def self.init_readline
+      Readline.completion_proc = proc do |s|
+        reg = /^#{Regexp.escape s}/
+        ret = Commands::METHODS.grep reg
+        ret + $tree.find_all{ |k, v|  k =~ reg && v }.map{ |k, _|  k }
+      end
+    end
+    private_class_method :init_readline
     
   end
   
