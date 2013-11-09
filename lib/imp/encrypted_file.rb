@@ -43,6 +43,9 @@ module Imp
       end
       f << Crypto.encrypt(@key, cont)
       f.flush
+      # Encrypted files should only be readable by their owner. Doesn't really
+      # add much security but hey.
+      f.chmod(0600)
       f.close
     end
     
