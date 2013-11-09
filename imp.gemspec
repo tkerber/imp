@@ -8,8 +8,8 @@ Gem::Specification.new do |spec|
   spec.description = "
 IMP is a simple console password manager. Passwords are stored in an AES
 encrypted filesystem-like tree. The main functionality includes printing,
-setting and copying files, allowing the handling of passwords without them
-being shown on screen."
+setting and copying passwords, allowing the handling of passwords without
+them being shown on screen."
   spec.description
   spec.version = Imp::VERSION
   spec.date = Time.now.strftime('%Y-%m-%d')
