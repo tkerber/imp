@@ -16,7 +16,7 @@ them being shown on screen."
   spec.author = 'Thomas Kerber'
   spec.email = 't.kerber@online.de'
   spec.homepage = 'https://github.com/tkerber/imp'
-  spec.files = Dir.glob("{docs,bin,lib}/**/*") + ['LICENSE', 'README.md',
+  spec.files = Dir.glob("{doc,bin,lib}/**/*") + ['LICENSE', 'README.md',
     __FILE__]
   spec.executables = ['imp']
   spec.license = "Apache-2.0"

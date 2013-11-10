@@ -70,7 +70,20 @@ del KEY       - Deletes the key from the tree. If it has subtrees, the
 exit          - Exit.
 
 Keys are sorted in forward-slash seperated tree structure (slightly
-remenicient of urls).")
+remenicient of urls). E.g. in a tree structure like
+
+some/
+  long/
+    path
+  other/
+    path
+
+'some/long/path' would be a valid key.
+
+Nodes can also have values, so path 'some/long/path' and 'some/long' can both
+have values assigned to them.
+
+Nodes are automatically created and destroyed as needed.")
     end
     
     # Prints either the tree if no argument is provided, or prints the value

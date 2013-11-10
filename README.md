@@ -10,3 +10,9 @@ and copy these passwords.
 Allows working with encrypted passwords without them ever appearing on-screen
 (due to the copy functionality) as they would if using a simple encrypted
 password file, but without the bloat of larger password managers.
+
+##TODO
+
+* Add builtin random password generation
+* More descriptive --help message.
+* Create tests. Seriously.
