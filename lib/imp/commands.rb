@@ -174,9 +174,9 @@ Nodes are automatically created and destroyed as needed.")
     # @param argstr [String] The index to copy followed by the key, seperated
     #   by whitespace.
     def self.copyc(argstr)
-      pos, key = argstr.split(2)
+      pos, key = argstr.split(nil, 2)
       pos = pos.to_i
-      copyc_expanded(char, key)
+      copyc_expanded(pos, key)
     end
     
     # Quits.
@@ -200,6 +200,8 @@ Nodes are automatically created and destroyed as needed.")
       begin
         UI.timeout do
           Clipboard.copy($tree[key][pos - 1])
+          $stdout.print "Character copied. Press enter to wipe..."
+          gets
         end
       # No method error arises from trying to work on a nil tree (or trying to
       # decrypt a nil value).
