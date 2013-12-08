@@ -182,8 +182,8 @@ Nodes are automatically created and destroyed as needed.")
     # Quits.
     # 
     # @param args [Array] Ignored.
-    def self.quit(*args)
-      exit
+    def self.exit(*args)
+      :quit
     end
     
     # This private is purely symbolic as classmethods have to be explicitly

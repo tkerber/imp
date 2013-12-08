@@ -60,6 +60,9 @@ module Imp
       init_readline
       begin
         prompt
+      rescue Interrupt
+        puts
+        exit
       ensure
         close_file
       end
@@ -109,14 +112,19 @@ module Imp
     # them.
     def self.run(command)
       # Ctrl-D will return nil; this should be a quit signal.
-      exit unless command
+      # As this is also the only input not send off with a new line, one
+      # will be printed for consistency.
+      unless command
+        puts
+        return :quit
+      end
       # Ignore empty commands
       return if command == ''
       command, args = command.strip.split(nil, 2)
       command.downcase!
       if Commands::METHODS.include? command
         begin
-          Commands.send(command.to_sym, args)
+          return Commands.send(command.to_sym, args)
         rescue
           $stderr.puts $!
           if $opts[:verbose]
