@@ -1,103 +1,107 @@
+require_relative 'node'
+require_relative 'crypto'
+
 
 module Imp
   
-  # A directory-esque tree with labeled nodes and edges.
+  # A tree consisting of Nodes.
+  # 
+  # All values are encrypted. This doesn't add additional security, but
+  # prevents them from appearing in memory in plaintext if avoidable. Note
+  # that any program designed specifically to tap into this programs memory
+  # will not be hindered by this.
   class Tree
     
     include Enumerable
     
-    
-    # The value of the current node in the tree.
-    attr_accessor :val
-    
-    # Creates a new Tree.
-    # 
-    # @param val [Object] The node label of the tree.
-    def initialize(val = nil)
-      @val = val
-      @succ = {}
+    def initialize(key, root = Node.new)
+      @key = key
+      @root = root
     end
     
-    # Gets a subtree by the label of the edge leading to it.
+    # Retrieves a node label following a forward-slash seperated list of
+    # edge labels.
     # 
-    # @param key [String] The edge label.
-    # @param create [Boolean] Whether or not the create a new Node if there
-    #   is no edge with the label given.
-    # @return [Tree, nil] The tree at the edge, or nil if it didn't exist
-    #   annd create was false.
-    def [](key, create = false)
-      if create and not @succ.include? key
-        @succ[key] = Tree.new
-      else
-        @succ[key]
+    # @param key [String] The forward-slash seperated list of edge labels.
+    # @return [String] The decrypted value of the corresponding node label.
+    def [](key)
+      Crypto.decrypt(@key, @root.descendant(key).val)
+    end
+    
+    # Sets a node label corresponding to a forward-slash seperated list of
+    # edge labels.
+    # 
+    # @param key [String] The list of edge labels.
+    # @param val [String] The value to set the node label to. This will be
+    #   encrypted.
+    def []=(key, val)
+      @root.descendant(key, true).val = Crypto.encrypt(@key, val)
+    end
+    
+    # Iterates over key/value pairs.
+    # 
+    # @param keys [Array<String>] A list of the keys followed to reach the
+    #   current subtree.
+    # @param subtree [Tree] The tree currently iterating over.
+    # @yield [key, value] Key, value pairs where the key is a forward
+    #   slash seperated string of edge labels. Values are not decrypted or
+    #   processed.
+    def each(keys = [], subtree = @root, &block)
+      # Yield the subtree's value unless it is the root.
+      yield [keys.join('/'), subtree.val] unless keys == []
+      subtree.each do |key, tree|
+        each(keys + [key], tree, &block)
       end
     end
     
-    # Removes a subtree by the label of the edge leading to it.
+    # Checks whether a tree contains a key.
     # 
-    # @param key [String] The edge label.s
+    # @param item [String] The forward slash seperated string of edge labels.
+    def include?(item)
+      @cont.descendant(key) != nil
+    end
+    
+    # Deletes a node corresponding to a forward-slash seperated list of edge
+    # labels.
+    # 
+    # @param key [String] The list of edge labels. Must be a valid key.
     def delete(key)
-      @succ.delete key
+      # We seperate the last key from the first keys.
+      key = key.split('/')
+      finalkey = key[-1]
+      key = key[0...-1]
+      
+      # Instead of using descendant we reduce over the root. This also handels
+      # the root being the parent node well.
+      node = key.reduce(@root, :[])
+      node.delete finalkey
     end
     
-    # Checks if this is a leaf node.
-    # 
-    # @return [Boolean] Wheter or not the node is a leaf.
-    def leaf?
-      @succ.length == 0
+    # Removes any leaves with a nil value.
+    def prune
+      @root.prune
     end
     
-    # Iterates over (edge, node) pairs.
+    # Changes the encryption key.
     # 
-    # @yield [edge, node] Edge, node pairs of connected nodes.
-    def each(&block)
-      @succ.each(&block)
-    end
-    
-    # Checks if an edge is included.
-    # 
-    # @param item [String] The string to check.
-    # @return [Boolean] Whether or not the string is an edge label going out
-    #   from this node.
-    def include? item
-      @succ.include? item
-    end
-    
-    # Gets a (more distant descendant of the current node.
-    # 
-    # @param key [String] A forward-slash seperated list of the edge labels to
-    #   follow.
-    # @param create [Boolean] Whether or not to create nodes if the edge
-    #   labels aren't used yet.
-    # @return [Tree, nil] The node connected through the edge labels, or nil
-    #   if there is no such node and create was false.
-    def descendant(key, create = false)
-      if key.include? '/'
-        key, keys = key.split('/', 2)
-        child = self[key, create]
-        if child
-          child.descendant(keys, create)
-        end
-      else
-        self[key, create]
-      end
-    end
-    
-    # Prints the skeleton of the tree. Node labels are NOT printed.
-    # 
-    # @param indent [Int] By how many stages to indent the tree.
-    # @return [String] The skeleton of the tree.
-    def to_s(indent = 0)
-      s = ""
+    # @param key [String] The new encryption key.
+    def key=(key)
+      oldkey = @key
+      @key = key
       each do |k, v|
-        s += '  ' * indent
-        s += k
-        s += '/' unless v.leaf?
-        s += '*' if v.val
-        s += "\n"
-        s += v.to_s(indent + 1)
+        # Don't change nil values.
+        next unless v
+        # Otherwise decrypt the value with the old key and encypt it with the
+        # new.
+        self[k] = Crypto.decrypt(oldkey, v)
       end
-      return s
+    end
+    
+    # Delegates to the root node for string representation.
+    # 
+    # @return [String] The string representation of the tree.
+    def to_s
+      @root.to_s
     end
     
   end

@@ -23,21 +23,23 @@ module Imp
     
     # Loads and decrypts a file. The password is asked for interactively.
     def self.load_file
-      until $tree
+      until $treefile
         begin
           passwd = get_passwd
           return unless passwd
-          $tree = EncryptedTree.new(passwd, $file)
+          $treefile = EncryptedTree.new(passwd, $file)
         rescue OpenSSL::Cipher::CipherError
           $stderr.puts "Decryption failed. Corrupt file or wrong password."
         end
       end
+      $tree = $treefile.tree
     end
     
     # Closes the tree. This generally only happens right before ruby is about
     # to exit so it isn't that important but hey.
     def self.close_file
-      $tree.close
+      $treefile.close
+      $treefile = nil
       $tree = nil
     end
     

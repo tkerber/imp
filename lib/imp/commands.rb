@@ -49,7 +49,7 @@ module Imp
       # Remove any nil-leaves. (This may remove key IF it is a leaf)
       $tree.prune
       # Write out the tree.
-      $tree.flush
+      $treefile.flush
     end
     
     # Prints help text.
@@ -109,8 +109,8 @@ Nodes are automatically created and destroyed as needed.")
     def self.change_passwd(*args)
       pass = Util.read_passwd("password for file '#{$file}'")
       return unless pass
-      $tree.password = pass
-      $tree.flush
+      $treefile.password = pass
+      $treefile.flush
     end
     
     # Set a value. Require entering the value to set it to twice until they
@@ -123,7 +123,7 @@ Nodes are automatically created and destroyed as needed.")
       return unless pass
       $tree[key] = pass
       # We save the tree whenever it is modified.
-      $tree.flush
+      $treefile.flush
     end
     
     # Sets a value from the system clipboard.
@@ -135,7 +135,7 @@ Nodes are automatically created and destroyed as needed.")
       pass = Clipboard.paste
       fail "Clipboard empty, could not paste." if pass == ''
       $tree[key] = pass
-      $tree.flush
+      $treefile.flush
     end
     
     # Copys the value of a key onto the system clipboard.
@@ -206,7 +206,7 @@ Nodes are automatically created and destroyed as needed.")
       pass = Imp::Random.generate_from_str len, type
       $tree[key] = pass
       # We save the tree whenever it is modified.
-      $tree.flush
+      $treefile.flush
     end
     
     # This private is purely symbolic as classmethods have to be explicitly

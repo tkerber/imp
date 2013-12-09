@@ -1,131 +1,52 @@
-require_relative 'tree'
 require_relative 'encrypted_file'
-require_relative 'crypto'
-
+require_relative 'tree'
 
 module Imp
   
-  # A tree loaded from an encrypted file.
-  # 
-  # All values are themselves encrypted with the key again. This doesn't
-  # add additional security, but prevents them from appearing in memory in
-  # plaintext if avoidable. Note that any program designed specifically
-  # to tap into this programs memory will have no problem with this.
+  # A small wrapper for encrypted trees, to handle previous save versions
+  # and passing on the key.
   class EncryptedTree < EncryptedFile
     
-    include Enumerable
+    # The tree.
+    attr_reader :tree
     
-    
-    # Creates a new tree / load an existing one from a file.
+    # Initializes the encrypted tree. Deals with deprecated serializations.
     # 
-    # @param passwd [String] The password to decrypt the file. Discarded
-    #   after this call (although the key is kept in memory)
-    # @param file [String] The location of the file to decrypt. If this does
-    #   not exist, a new tree is made.
+    # @param passwd [String] The password to the file.
+    # @param file [String] The path to the file.
     def initialize(passwd, file)
-      super(passwd, file)
+      # Why this uglyness?
+      # 
+      # Previously, The class Node was called Tree, which means that any
+      # saved files would be serialized with Imp::Tree instead of Imp::Node.
+      # 
+      # To allow for a smooth transition, any occurences of Imp::Tree are
+      # replaced with Imp::Node.
+      # 
+      # Technically it is of course possible that the plaintext string
+      # "Imp::Tree" appears somewhere else by accident, in practice the
+      # chance of this is too remote to require special handling.
+      super(passwd, file, false)
+      @marshal = true
       if @cont == nil
-        @cont = Tree.new
-      end
-    end
-    
-    # Retrieves a node label following a forward-slash seperated list of
-    # edge labels.
-    # 
-    # @param key [String] The forward-slash seperated list of edge labels.
-    # @return [String] The decrypted value of the corresponding node label.
-    def [](key)
-      Crypto.decrypt(@key, @cont.descendant(key).val)
-    end
-    
-    # Sets a node label corresponding to a forward-slash seperated list of
-    # edge labels.
-    # 
-    # @param key [String] The list of edge labels.
-    # @param val [String] The value to set the node label to. This will be
-    #   encrypted.
-    def []=(key, val)
-      @cont.descendant(key, true).val = Crypto.encrypt(@key, val)
-    end
-    
-    # Iterates over key/value pairs.
-    # 
-    # @param keys [Array<String>] A list of the keys followed to reach the
-    #   current subtree.
-    # @param subtree [Tree] The tree currently iterating over.
-    # @yield [key, value] Key, value pairs where the key is a forward
-    #   slash seperated string of edge labels. Values are not decrypted or
-    #   processed.
-    def each(keys = [], subtree = @cont, &block)
-      # Yield the subtree's value unless it is the root.
-      yield [keys.join('/'), subtree.val] unless keys == []
-      subtree.each do |key, tree|
-        each(keys + [key], tree, &block)
-      end
-    end
-    
-    # Checks whether a tree contains a key.
-    # 
-    # @param item [String] The forward slash seperated string of edge labels.
-    def include?(item)
-      @cont.descendant(key) != nil
-    end
-    
-    # Deletes a node corresponding to a forward-slash seperated list of edge
-    # labels.
-    # 
-    # @param key [String] The list of edge labels. Must be a valid key.
-    def delete(key)
-      # We seperate the last key from the first keys.
-      key = key.split('/')
-      finalkey = key[-1]
-      key = key[0...-1]
-      
-      # Instead of using descendant we reduce over the root. This also handels
-      # the root being the parent node well.
-      node = key.reduce(@cont, :[])
-      node.delete finalkey
-    end
-    
-    # Iteratively removes any leaves with a nil value.
-    # Not terribly efficient but there is no need to be.
-    def prune
-      pruned = true
-      while pruned
-        pruned = false
-        self.each do |key, value|
-          if value == nil && @cont.descendant(key).leaf?
-            delete(key)
-            pruned = true
-          end
+        @cont = Node.new
+      else
+        if @cont.include? 'Imp::Tree'
+          @cont.gsub!('Imp::Tree', 'Imp::Node')
         end
+        @cont = Marshal.load(@cont)
       end
+      @tree = Tree.new(@key, @cont)
     end
     
     # Sets a new password for the file.
     # 
-    # @param passwd [String] The new password to generate a key from.
+    # @param passwd [String] The new password to use.
     def password=(passwd)
-      key = @key
-      # Super call.
+      # Super call
       EncryptedFile.instance_method(:password=).bind(self).call(passwd)
-      # If the file is still being initialized, @cont may be nil. In this case
-      # return.
-      return unless @cont
-      each do |k, v|
-        # Don't change nil values.
-        next unless v
-        # Otherwise decrypt with the old key and encrypt with the new.
-        # (Encryption is done automatically by #[]=)
-        self[k] = Crypto.decrypt(key, v)
-      end
-    end
-    
-    # Delegates to the tree for string representation.
-    # 
-    # @return [String] The string representation of the tree.
-    def to_s
-      @cont.to_s
+      # Pass the new key to the tree.
+      @tree.key = @key
     end
     
   end

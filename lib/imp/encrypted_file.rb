@@ -55,12 +55,15 @@ module Imp
       @key  = nil
     end
     
-    private
-    
+    # Sets a new password for the file.
+    # 
+    # @param passwd [String] The new password to use.
     def password=(passwd)
       @salt = Crypto.rand_salt
       @key = Crypto.get_key(passwd, @salt)
     end
+    
+    private
     
     # Loads the content from the file.
     # 
