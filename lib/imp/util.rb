@@ -1,3 +1,4 @@
+require 'highline/import'
 
 module Imp
   
