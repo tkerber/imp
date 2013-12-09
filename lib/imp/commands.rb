@@ -3,6 +3,7 @@ require 'highline/import'
 
 require_relative 'ui'
 require_relative 'util'
+require_relative 'random'
 
 module Imp
   
@@ -21,7 +22,8 @@ module Imp
       "copy_raw",
       "copyc",
       "del",
-      "exit"]
+      "exit",
+      "gen"]
     
     # Deletes a key. If the key has no children, it is removed from the tree.
     # If it has children, it is removed from the tree if and only if it's
@@ -63,6 +65,8 @@ copy_raw KEY  - Copies the value of a key, without clearing the clipboard.
 del KEY       - Deletes the key from the tree. If it has subtrees, the
                 subtrees get deleted if and only if the key had no value.
 exit          - Exit.
+gen KEY       - Generates a random password and places it under the key
+                given.
 help          - Prints this help text
 paste KEY     - Sets the value of the key from the system clipboard.
 print         - Prints a representation of the tree, without values.
@@ -184,6 +188,24 @@ Nodes are automatically created and destroyed as needed.")
     # @param args [Array] Ignored.
     def self.exit(*args)
       :quit
+    end
+    
+    # Generate a random password, placing it under the given key.
+    # 
+    # @param key [String] The key to generate the password for.
+    def self.gen(key)
+      fail "Key must be supplied." unless key
+      len = ask("How Many digits should the password have? Leave blank or "\
+        "<= 0 to cancel): ").to_i
+      return if len <= 0
+      type = ask("What type of password would you like to generate?\nEnter "\
+        "a combination of the digits 'l' for lowercase, 'u' for uppercase, "\
+        "'d' for digits and 's' for symbols\nto indicate which should be "\
+        "included in your password: ")
+      pass = Imp::Random.generate_from_str len, type
+      $tree[key] = pass
+      # We save the tree whenever it is modified.
+      $tree.flush
     end
     
     # This private is purely symbolic as classmethods have to be explicitly
