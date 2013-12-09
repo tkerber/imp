@@ -215,6 +215,8 @@ Nodes are automatically created and destroyed as needed.")
     
     # Prints strings, waits for enter then replaces them. Also adds color
     # for fancyness.
+    # 
+    # @param str [String] The string to print temporarily.
     def self.tmp_print(str)
       HighLine::SystemExtensions.raw_no_echo_mode
       $stdout.print HighLine.color(str, :bold, :green)

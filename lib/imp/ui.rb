@@ -70,8 +70,6 @@ module Imp
     
     # Times out execution of a block and exits printing an appropriate message
     # if the block doesn't time out in time.
-    # 
-    # The name is due to a conflict with Timeout's own.
     def self.timeout(&block)
       begin
         Timeout::timeout(TIMEOUT, &block)
@@ -110,6 +108,9 @@ module Imp
     
     # Runs a single command by the user. Also catches most errors and prints
     # them.
+    # 
+    # @param command [String] The command to run.
+    # @return [:quit, nil] :quit to quit, nil to do nothing.
     def self.run(command)
       # Ctrl-D will return nil; this should be a quit signal.
       # As this is also the only input not send off with a new line, one
@@ -190,6 +191,10 @@ module Imp
     end
     private_class_method :init_readline
     
+    # Gets the password for the encrypted file.
+    # 
+    # @return [nil, String] nil to signal no password was given, or the
+    #   password itself.
     def self.get_passwd
       if File.exists? File.expand_path($file)
         pass = ask("Password for file '#{$file}' (leave blank to cancel): ")\
@@ -205,6 +210,7 @@ module Imp
         Util.read_passwd("password for the file '#{$file}'")
       end
     end
+    private_class_method :get_passwd
     
   end
   
