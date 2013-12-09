@@ -54,20 +54,20 @@ module Imp
     # @param args [Array] Ignored.
     def self.help(*args)
       puts ("
-help          - Prints this help text
-set KEY       - Sets the value of the key to a value entered by the user.
 change_passwd - Changes the password of the current file.
-paste KEY     - Sets the value of the key from the system clipboard.
-print         - Prints a representation of the tree, without values.
-print KEY     - Prints the value of the key.
 copy KEY      - Copies the value of the key, auto clears clipboard afterward.
+copyc INT KEY - Copies the (1-indexed) character from the value of the key.
 copy_raw      - Clears the clipboard.
 copy_raw KEY  - Copies the value of a key, without clearing the clipboard.
                 Useful for moving values around between keys.
-copyc INT KEY - Copies the (1-indexed) character from the value of the key.
 del KEY       - Deletes the key from the tree. If it has subtrees, the
                 subtrees get deleted if and only if the key had no value.
 exit          - Exit.
+help          - Prints this help text
+paste KEY     - Sets the value of the key from the system clipboard.
+print         - Prints a representation of the tree, without values.
+print KEY     - Prints the value of the key.
+set KEY       - Sets the value of the key to a value entered by the user.
 
 Keys are sorted in forward-slash seperated tree structure (slightly
 remenicient of urls). E.g. in a tree structure like
