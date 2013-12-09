@@ -33,6 +33,7 @@ module Imp
     # @param force [Boolean] Doesn't require confirmation from the user if
     #   it is true.
     def self.del(key, force = false)
+      fail "Key must be supplied." unless key
       unless force ||
           agree("Are you sure you want to delete the key '#{key}'? ")
         return
