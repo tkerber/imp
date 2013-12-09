@@ -1,5 +1,6 @@
-require_relative 'util'
 require 'openssl'
+
+require_relative 'util'
 
 module Imp
   

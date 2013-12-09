@@ -1,5 +1,6 @@
-require 'clipboard'
 require 'highline/import'
+
+require 'clipboard'
 
 require_relative 'ui'
 require_relative 'util'
@@ -162,7 +163,7 @@ Nodes are automatically created and destroyed as needed.")
     def self.copy(key)
       fail "Key must be supplied." unless key
       begin
-        UI.timeout do
+        Util.timeout do
           copy_raw key
           $stdout.print "Value copied. Press enter to wipe..."
           gets
@@ -220,7 +221,7 @@ Nodes are automatically created and destroyed as needed.")
     # @param key [String] The key of the value to copy.
     def self.copyc_expanded(pos, key)
       begin
-        UI.timeout do
+        Util.timeout do
           Clipboard.copy($tree[key][pos - 1])
           $stdout.print "Character copied. Press enter to wipe..."
           gets
@@ -243,7 +244,7 @@ Nodes are automatically created and destroyed as needed.")
       HighLine::SystemExtensions.raw_no_echo_mode
       $stdout.print HighLine.color(str, :bold, :green)
       begin
-        UI.timeout do
+        Util.timeout do
           HighLine::SystemExtensions.get_character
         end
       ensure

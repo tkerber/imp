@@ -1,7 +1,6 @@
 require 'highline/import'
 
 require 'readline'
-require 'timeout'
 require 'optparse'
 
 require_relative 'encrypted_tree'
@@ -67,18 +66,6 @@ module Imp
         close_file
       end
     end
-    
-    # Times out execution of a block and exits printing an appropriate message
-    # if the block doesn't time out in time.
-    def self.timeout(&block)
-      begin
-        Timeout::timeout(TIMEOUT, &block)
-      rescue Timeout::Error
-        $stderr.puts "\nUser input timeout. Closing..."
-        exit
-      end
-    end
-    
     
     private
     
@@ -147,7 +134,7 @@ module Imp
       quit = false
       begin
         until quit
-          timeout do
+          Util.timeout do
             input = Readline.readline(PROMPT, true)
             quit = run(input) == :quit
           end
@@ -203,7 +190,7 @@ module Imp
         end
         pass == "" ? nil : pass
       else
-        puts "This is your first time using the file '#{$file}' to save "
+        puts "This is your first time using the file '#{$file}' to save "\
           "your passwords."
         puts "Please enter your password for first-time use."
         puts "Note that you can change this password at any time."

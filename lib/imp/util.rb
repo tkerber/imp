@@ -1,5 +1,7 @@
 require 'highline/import'
 
+require 'timeout'
+
 module Imp
   
   # Contains misc. utility methods.
@@ -37,6 +39,17 @@ module Imp
         first_pass = false
       end
       return pass1
+    end
+    
+    # Times out execution of a block and exits printing an appropriate message
+    # if the block doesn't time out in time.
+    def self.timeout(&block)
+      begin
+        Timeout::timeout(TIMEOUT, &block)
+      rescue Timeout::Error
+        $stderr.puts "\nUser input timeout. Closing..."
+        exit
+      end
     end
     
   end
