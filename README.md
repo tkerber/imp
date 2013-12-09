@@ -13,6 +13,6 @@ password file, but without the bloat of larger password managers.
 
 ##TODO
 
-* Add builtin random password generation
 * More descriptive --help message.
-* Create tests. Seriously.
+* Create tests. Seriously. (I have to figure out how/if to test the heavily
+  I/O based classes)
