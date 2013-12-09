@@ -49,7 +49,7 @@ module Imp
     
     # Iterates over (edge, node) pairs.
     # 
-    # @yield [String, Tree] Edge, node pairs of connected nodes.
+    # @yield [edge, node] Edge, node pairs of connected nodes.
     def each(&block)
       @succ.each(&block)
     end

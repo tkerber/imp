@@ -53,7 +53,7 @@ module Imp
     # @param keys [Array<String>] A list of the keys followed to reach the
     #   current subtree.
     # @param subtree [Tree] The tree currently iterating over.
-    # @yield [String, String] Key, value pairs where the key is a forward
+    # @yield [key, value] Key, value pairs where the key is a forward
     #   slash seperated string of edge labels. Values are not decrypted or
     #   processed.
     def each(keys = [], subtree = @cont, &block)
@@ -104,7 +104,7 @@ module Imp
     
     # Sets a new password for the file.
     # 
-    # @param [String] The new password to generate a key from.
+    # @param passwd [String] The new password to generate a key from.
     def password=(passwd)
       key = @key
       # Super call.
