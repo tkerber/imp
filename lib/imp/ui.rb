@@ -20,9 +20,6 @@ module Imp
     HISTFILE = '~/.imp/hist'
     # The string precending user input in the prompt.
     PROMPT = 'imp> '
-    # The time in seconds, after which the program exits if it recieves no
-    # input from the user.
-    TIMEOUT = 300
     
     # Loads and decrypts a file. The password is asked for interactively.
     def self.load_file

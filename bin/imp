@@ -1,4 +1,4 @@
 #!/usr/bin/env ruby
-require 'imp'
+require 'imp/ui'
 
-Imp.main
+Imp::UI.main

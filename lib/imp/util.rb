@@ -7,6 +7,10 @@ module Imp
   # Contains misc. utility methods.
   module Util
     
+    # The time in seconds, after which the program exits if it recieves no
+    # input from the user.
+    TIMEOUT = 300
+    
     # Creates as many directories as needed.
     # 
     # @param dir [String] The directory to create.

@@ -2,7 +2,6 @@ require 'highline/import'
 
 require 'clipboard'
 
-require_relative 'ui'
 require_relative 'util'
 require_relative 'random'
 
